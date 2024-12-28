@@ -21,9 +21,11 @@ def lambda_handler(event, context):
             })
         }
     #except block
+    #added new
     except Exception as e:
         print(f"Error: {str(e)}")
         return {
             'statusCode': 500,
             'body': json.dumps({'error': 'Failed to start Glue Job'})
         }
+ 
