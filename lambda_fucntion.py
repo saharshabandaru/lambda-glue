@@ -20,7 +20,7 @@ def lambda_handler(event, context):
                 'JobRunId': job_run_id
             })
         }
-
+    #except block
     except Exception as e:
         print(f"Error: {str(e)}")
         return {
