@@ -1,42 +1,41 @@
-name: Deploy Lambda Function
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Action: 'sts:AssumeRole'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+      Policies:
+        - PolicyName: 'LambdaGluePolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'glue:StartJobRun'
+                Resource: '*'
 
-on:
-  push:
-    branches:
-      - main  # Deploy when code is pushed to the main branch
+  LambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: 'index.lambda_handler'
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: 'GlueJobLambdaFunction'
+      Code:
+        S3Bucket: 'websiteupload01'  # Specify the S3 bucket where your code is stored
+        S3Key: 'path/to/your/code.zip'  # Specify the S3 key (file path) of your Lambda function code
+      Runtime: 'python3.8'
+      Environment:
+        Variables:
+          GLUE_JOB_NAME: 'MyGlueJob'  # Set the Glue Job name here
+      Timeout: 300  # Set an appropriate timeout
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install AWS CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli
-
-      - name: Install Dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Package Lambda Function
-        run: |
-          zip -r function.zip .  # Compress all files into a zip archive
-
-      - name: Deploy to AWS Lambda
-        run: |
-          aws lambda update-function-code \
-            --function-name lambdaGit \
-            --zip-file fileb://function.zip
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1  # Replace with your Lambda region
+Outputs:
+  LambdaFunctionArn:
+    Description: 'Lambda Function ARN'
+    Value: !GetAtt LambdaFunction.Arn
