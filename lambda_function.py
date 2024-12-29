@@ -1,8 +1,15 @@
 import boto3
 import json
 import os
+import logging
 
+# Configure the logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 def lambda_handler(event, context):
+    logger.info("Lambda function invoked.")
+    logger.debug(f"Event received: {event}")
+    
     glue_client = boto3.client('glue')
     s3_event = event['Records'][0]['s3']  # Get the S3 event
 
